@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+
 
 const Welcome = () => {
     const navigate = useRouter()
@@ -21,13 +22,17 @@ const Welcome = () => {
                 <TouchableOpacity style={styles.loginButton} onPress={() => { replacePath('login') }}>
                     <Text style={styles.buttonText}>Login</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.registerButton} onPress={() => { replacePath('register')}}>
+                <TouchableOpacity style={styles.registerButton} onPress={() => { replacePath('register') }}>
                     <Text style={styles.buttonText}>Register</Text>
                 </TouchableOpacity>
             </View>
         </LinearGradient>
     );
 };
+
+export default Welcome;
+
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
@@ -60,7 +65,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     loginButton: {
-        width: '90%',
+        width: '100%',
         paddingVertical: 15,
         borderRadius: 5,
         marginBottom: 15,
@@ -68,7 +73,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#3b5998',
     },
     registerButton: {
-        width: '90%',
+        width: '100%',
         paddingVertical: 15,
         borderRadius: 5,
         alignItems: 'center',
@@ -81,4 +86,3 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Welcome;
