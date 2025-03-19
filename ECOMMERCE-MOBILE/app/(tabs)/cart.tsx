@@ -1,11 +1,11 @@
 import React from 'react'
-import { Text } from 'react-native'
+import { Text } from 'react-native-paper'
 
 const cart = () => {
+  
   return (
-    <Text>cart</Text>
+    <Text>Cart</Text>
   )
 }
 
 export default cart
-

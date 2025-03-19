@@ -16,17 +16,17 @@ export default function TabLayout() {
           name="home"
           options={{
             title: 'Home',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={'white'} />,
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
             headerTitleStyle: {
               fontSize: 24,
               fontWeight: 'bold',
               color: 'white',
             },
             headerStyle: {
-              backgroundColor: '#0EDF8D',
+              backgroundColor: '#4c669f',
             },
             tabBarStyle: {
-              backgroundColor: '#0EDF8D',
+              backgroundColor: '#3b5998',
             },
             tabBarActiveTintColor: 'white',
 
@@ -46,10 +46,10 @@ export default function TabLayout() {
               color: 'white',
             },
             headerStyle: {
-              backgroundColor: '#0EDF8D',
+              backgroundColor: '#4c669f',
             },
             tabBarStyle: {
-              backgroundColor: '#0EDF8D',
+              backgroundColor: '#3b5998',
             },
             tabBarActiveTintColor: 'white',
             headerRight: () => {

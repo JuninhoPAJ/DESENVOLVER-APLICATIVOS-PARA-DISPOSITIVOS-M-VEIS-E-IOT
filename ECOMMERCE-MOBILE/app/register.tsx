@@ -55,15 +55,17 @@ const Register = () => {
     };
 
     const handleErrorConfirmPassword = () => {
-        if (passwordDirty && confirmPassword !== password) {
+        if (passwordDirty && !confirmPassword) {
+            return <Text style={styles.error}>Campo obrigatório</Text>;
+        } else if (passwordDirty && confirmPassword !== password) {
             return <Text style={styles.error}>As senhas não coincidem</Text>;
         }
         return null;
     };
+    
 
     const handleErrorForm = () => {
         let hasError = false;
-
         // Verificação de campos obrigatórios e validações
         if (!fullName || fullName.length < 2) {
             setFullNameDirty(true);
@@ -100,6 +102,11 @@ const Register = () => {
             hasError = true;
         }
 
+        if (!confirmPassword) {
+            setPasswordDirty(true);
+            hasError = true;
+        }
+
         if (confirmPassword !== password) {
             setPasswordDirty(true);
             hasError = true;
@@ -109,6 +116,7 @@ const Register = () => {
         if (!hasError) {
             console.log('Registrando com:', fullName, email, cpf, password);
             alert('Registro bem-sucedido!');
+            replacePath('login');
         }
     };
 
@@ -190,7 +198,7 @@ const Register = () => {
                         />
                         {handleErrorConfirmPassword()}
 
-                        <TouchableOpacity style={styles.registerButton} onPress={handleErrorForm}>
+                        <TouchableOpacity style={styles.registerButton} onPress={() => handleErrorForm()}>
                             <Text style={styles.buttonText}>Cadastrar</Text>
                         </TouchableOpacity>
 

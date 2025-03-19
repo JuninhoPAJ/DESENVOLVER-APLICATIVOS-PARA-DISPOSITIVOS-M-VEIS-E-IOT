@@ -24,6 +24,8 @@ const Login = () => {
     const handleErrorPassword = () => {
         if (!password.value && password.dirty) {
             return <Text style={styles.error}>Campo obrigatório</Text>
+        } else if (password.value.length < 6 && password.dirty) {
+            return <Text style={styles.error}>A senha deve ter no mínimo 6 caracteres</Text>
         } else {
             return <Text style={styles.error}></Text>
         }
@@ -32,8 +34,11 @@ const Login = () => {
     const handleErrorForm = () => {
         let hasError = false
         if (!password.value) {
-            setPassword({value: password.value, dirty: true})
-            hasError = true
+            setPassword({ value: password.value, dirty: true });
+            hasError = true;
+        } else if (password.value.length < 6) {
+            setPassword({ value: password.value, dirty: true });
+            hasError = true;
         }
 
         if (!email.value) {
