@@ -1,13 +1,10 @@
 import { Tabs } from 'expo-router';
 import React, { useState } from 'react';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Menu, PaperProvider } from 'react-native-paper';
-import { TouchableOpacity } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
 import HeaderMenu from '@/components/HeaderMenu';
 
 export default function TabLayout() {
-  const [visible, setVisible] = useState(false);
 
   return (
     <PaperProvider>

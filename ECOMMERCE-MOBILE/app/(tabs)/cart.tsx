@@ -1,69 +1,110 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para carregar e salvar o carrinho
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
-// Tipo para Produto no Carrinho (com a propriedade quantidade)
-interface ProdutoCarrinho {
+type Product = {
   id: number;
-  nome: string;
-  descricao: string;
-  preco: string;
-  imagem: string;
-  quantidade: number;
-}
+  name: string;
+  price: string;
+  image: string;
+  quantity: number;
+};
 
-const Cart = () => {
-  const [carrinho, setCarrinho] = useState<ProdutoCarrinho[]>([]);
+const Cart: React.FC = () => {
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const navigation = useNavigation();
 
-  // Função para carregar o carrinho do AsyncStorage
-  const carregarCarrinho = async () => {
+  const loadCart = async () => {
     try {
-      const carrinhoSalvo = await AsyncStorage.getItem('carrinho');
-      if (carrinhoSalvo) {
-        setCarrinho(JSON.parse(carrinhoSalvo)); // Carrega o carrinho do AsyncStorage
-      }
+      const cart = await AsyncStorage.getItem('cart');
+      return cart ? JSON.parse(cart) : [];
     } catch (error) {
-      console.error('Erro ao carregar carrinho:', error);
+      console.error("Erro ao carregar o carrinho:", error);
+      return [];
     }
   };
 
-  // Função para excluir um produto do carrinho
-  const excluirProdutoCarrinho = async (id: number) => {
-    const carrinhoAtualizado = carrinho.filter((produto) => produto.id !== id);
-
+  const removeFromCart = async (productId: number) => {
     try {
-      await AsyncStorage.setItem('carrinho', JSON.stringify(carrinhoAtualizado)); // Atualiza o carrinho no AsyncStorage
-      setCarrinho(carrinhoAtualizado); // Atualiza o estado local
+      const cart = await AsyncStorage.getItem('cart');
+      let cartItems: Product[] = cart ? JSON.parse(cart) : [];
+
+      // Filtra o produto a ser removido
+      const updatedCart = cartItems.filter((item) => item.id !== productId);
+
+      // Atualiza o AsyncStorage e o estado local
+      await AsyncStorage.setItem('cart', JSON.stringify(updatedCart));
+      setCartItems(updatedCart); // Atualiza o estado
     } catch (error) {
-      console.error('Erro ao excluir produto do carrinho:', error);
+      console.error("Erro ao excluir produto do carrinho:", error);
     }
+  };
+
+  const increaseQuantity = async (productId: number) => {
+    try {
+      const cart = await AsyncStorage.getItem('cart');
+      let cartItems: Product[] = cart ? JSON.parse(cart) : [];
+
+      // Encontra o produto no carrinho
+      const productIndex = cartItems.findIndex((item) => item.id === productId);
+
+      if (productIndex !== -1) {
+        // Aumenta a quantidade se o produto já existir
+        cartItems[productIndex].quantity += 1;
+        await AsyncStorage.setItem('cart', JSON.stringify(cartItems)); // Atualiza o AsyncStorage
+        setCartItems(cartItems); // Atualiza o estado local
+      }
+    } catch (error) {
+      console.error("Erro ao aumentar a quantidade:", error);
+    }
+  };
+
+  const fetchData = async () => {
+    const items = await loadCart();
+    setCartItems(items);
   };
 
   useEffect(() => {
-    carregarCarrinho(); // Carrega o carrinho ao abrir a tela
-  }, []);
+    fetchData();
+
+    const focusListener = navigation.addListener('focus', fetchData);
+
+    return () => {
+      focusListener();
+    };
+  }, [navigation]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Carrinho de Compras</Text>
 
-      {carrinho.length === 0 ? (
-        <Text style={styles.emptyText}>Seu carrinho está vazio!</Text>
+      {cartItems.length === 0 ? (
+        <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
       ) : (
-        carrinho.map((produto) => (
-          <View key={produto.id} style={styles.productCard}>
-            <Text style={styles.productName}>{produto.nome}</Text>
-            <Text style={styles.productPrice}>
-              {produto.preco} - Quantidade: {produto.quantidade}
-            </Text>
+        cartItems.map((item) => (
+          <View key={item.id} style={styles.cartItem}>
+            <Image source={{ uri: item.image }} style={styles.itemImage} />
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemPrice}>{item.price}</Text>
+              <Text style={styles.itemQuantity}>Quantidade: {item.quantity}</Text>
 
-            {/* Botão de excluir produto */}
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => excluirProdutoCarrinho(produto.id)} // Chama a função de exclusão
-            >
-              <Text style={styles.removeButtonText}>Excluir</Text>
-            </TouchableOpacity>
+              <View style={styles.itemActions}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => increaseQuantity(item.id)}
+                >
+                  <Text style={styles.actionText}>Aumentar Qtde</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => removeFromCart(item.id)}
+                >
+                  <Text style={styles.actionText}>Remover</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         ))
       )}
@@ -73,7 +114,6 @@ const Cart = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
@@ -86,41 +126,56 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#888',
     textAlign: 'center',
+    color: '#777',
   },
-  productCard: {
+  cartItem: {
+    flexDirection: 'row',
+    marginBottom: 20,
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 10,
     borderRadius: 10,
-    marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 5 },
     elevation: 3,
   },
-  productName: {
+  itemImage: {
+    width: 100,
+    height: 100,
+    marginRight: 15,
+    borderRadius: 8,
+  },
+  itemDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  itemName: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
   },
-  productPrice: {
+  itemPrice: {
     fontSize: 16,
-    color: '#777',
+    color: '#555',
   },
-  removeButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+  itemQuantity: {
+    fontSize: 14,
+    color: '#555',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    backgroundColor: '#4c669f',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 5,
-    marginTop: 10,
-    alignItems: 'center',
   },
-  removeButtonText: {
+  actionText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
 
