@@ -3,8 +3,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import httpService from './services/htthService';
 
 const Register = () => {
+    const SERVER_URL = 'http://192.168.0.198:3000'
     const navigate = useRouter();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -114,9 +116,24 @@ const Register = () => {
 
         // Se não houver erro, procede com o registro
         if (!hasError) {
-            console.log('Registrando com:', fullName, email, cpf, password);
-            alert('Registro bem-sucedido!');
+            sendForm()
             replacePath('login');
+        }
+    };
+
+    const sendForm = async () => {
+        const json = {
+            name: fullName,
+            email,
+            cpf,
+            password,
+        };
+        try {
+            const registerUserURL = `${SERVER_URL}/api/user`;
+            await httpService.post(registerUserURL, json);
+            alert('Registro bem-sucedido!');
+        } catch (error) {
+            console.error('Erro ao registrar:', error);
         }
     };
 

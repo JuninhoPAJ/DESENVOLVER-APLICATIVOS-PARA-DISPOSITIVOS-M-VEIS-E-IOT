@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { PaperProvider } from 'react-native-paper';
 import HeaderMenu from '@/components/HeaderMenu';

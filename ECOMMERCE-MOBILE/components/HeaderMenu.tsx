@@ -18,7 +18,7 @@ const HeaderMenu = () => {
         >
             <Menu.Item title={<Text>Perfil</Text>} />
             <Menu.Item title={<Text>Configuration</Text>} />
-            <Menu.Item onPress={() => { }} title={<Text>Conversation with IA</Text>} />
+            <Menu.Item onPress={() => router.replace('/(tabs)/chat/chat')} title={<Text>Conversation with IA</Text>} />
             <Divider />
             <Menu.Item onPress={() => { router.replace('/login') }} title="Sair" />
 
