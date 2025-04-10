@@ -6,7 +6,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingVi
 import httpService from './services/htthService';
 
 const Register = () => {
-    const SERVER_URL = 'http://192.168.0.198:3000'
+    const SERVER_URL = 'http://192.168.0.195:3000'
     const navigate = useRouter();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
