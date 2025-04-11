@@ -26,7 +26,7 @@ const chat = () => {
         ws.onopen = () => {
             console.log('Conectado ao servidor WebSocket')
         }
-        ws.onmessage = (data: any) => {
+        ws.onmessage = ({data}) => {
             chatData.messages.push(JSON.parse(data))
             setChat({ messages: chatData.messages })
             setMessage('')
