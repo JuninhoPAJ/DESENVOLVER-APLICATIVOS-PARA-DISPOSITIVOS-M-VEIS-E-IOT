@@ -24,6 +24,7 @@ export default function RootLayout() {
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
+      <Stack.Screen name="changeName" options={{ headerShown: false}} />
       <Stack.Screen name="chat" options={{
         title: 'Artificial Intelligence Chat',
         headerTitleAlign: 'center',

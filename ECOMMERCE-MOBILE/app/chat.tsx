@@ -1,8 +1,9 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
+import { useLocalSearchParams } from 'expo-router'
 
 class Message {
     text: string
@@ -14,22 +15,35 @@ class Message {
     }
 }
 
+const ws = new WebSocket('ws://192.168.0.195:3000')
 const chat = () => {
-    const [userLogged, setUserLogged] = useState('USER')
+    const params = useLocalSearchParams()
+    const [userLogged, setUserLogged] = useState(params.userLogged)
     const [chatData, setChat] = useState<{ messages: Message[] }>({ messages: [] })
     const [message, setMessage] = useState('')
 
+    useEffect(() => {
+        ws.onopen = () => {
+            console.log('Conectado ao servidor WebSocket')
+        }
+        ws.onmessage = (data: any) => {
+            chatData.messages.push(JSON.parse(data))
+            setChat({ messages: chatData.messages })
+            setMessage('')
+        }
+    }, [])
+
     const sendMessage = () => {
-        setChat({ messages: [...chatData.messages, { text: message, sentBy: userLogged }] })
-        setMessage('')
+        const jsonString: string = JSON.stringify({ text: message, sentBy: userLogged })
+        ws.send(jsonString)
     }
 
     return (
         <Fragment>
             <FlatList
-                style={styles.container}
+                style={styles.scrollViewContainer}
                 data={chatData.messages}
-                renderItem={({ item }) => <Balloon message={item}currentUser={userLogged}></Balloon>}
+                renderItem={({ item }) => <Balloon message={item} currentUser={userLogged}></Balloon>}
                 keyExtractor={(item, index) => index.toString()}
                 ListEmptyComponent={() => <Text style={{ alignSelf: 'center', color: '#848484' }}>Sem mensagens no momento</Text>}
                 showsVerticalScrollIndicator={false}
@@ -101,6 +115,12 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 16,
         marginHorizontal: 16,
+    },
+
+    scrollViewContainer: {
+        padding: 10,
+        top: 10,
+        marginBottom: 30,
     },
 
     messageTextInputContainer: {
