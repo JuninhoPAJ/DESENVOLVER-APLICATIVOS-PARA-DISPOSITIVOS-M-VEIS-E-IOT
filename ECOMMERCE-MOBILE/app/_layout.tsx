@@ -24,13 +24,26 @@ export default function RootLayout() {
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
-      <Stack.Screen name="changeName" options={{ headerShown: false}} />
+      <Stack.Screen name="changeNameChat" options={{
+        headerShown: false, headerLeft: () => {
+          return <TouchableOpacity onPress={() => router.replace('/changeNameIA')}>
+            <Ionicons name='arrow-back' color='black' size={30}></Ionicons></TouchableOpacity>
+        }
+      }} />
       <Stack.Screen name="chat" options={{
+        title: 'Chat',
+        headerTitleAlign: 'center',
+        headerLeft: () => {
+          return <TouchableOpacity onPress={() => router.replace('/changeNameChat')}>
+            <Ionicons name='arrow-back' color='black' size={30}></Ionicons></TouchableOpacity>
+        }
+      }} />
+      <Stack.Screen name="Conversation with IA" options={{
         title: 'Artificial Intelligence Chat',
         headerTitleAlign: 'center',
         headerLeft: () => {
-          return <TouchableOpacity onPress={() => router.replace('/(tabs)/home')}>
-            <Ionicons name='arrow-back' color='black' size={28}></Ionicons></TouchableOpacity>
+          return <TouchableOpacity onPress={() => router.replace('/changeNameIA')}>
+            <Ionicons name='arrow-back' color='black' size={30}></Ionicons></TouchableOpacity>
         }
       }} />
 

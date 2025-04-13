@@ -2,13 +2,13 @@ import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
-const changeName = () => {
+const changeNameChat = () => {
     const [userLogged, setUserLogged] = useState('')
     const router = useRouter()
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <TextInput style={styles.textInput} placeholderTextColor='black' onChangeText={(text) => setUserLogged(text)} value={userLogged} />
-            <TouchableOpacity style={styles.button} onPress={() => router.replace({ pathname: '/chat', params: { userLogged } })}><Text>Enviar</Text></TouchableOpacity>
+            <TextInput style={styles.textInput} placeholderTextColor='black' placeholder='Digite seu nome' onChangeText={(text) => setUserLogged(text)} value={userLogged} />
+            <TouchableOpacity style={styles.button} disabled={!userLogged.trim()} onPress={() => router.replace({ pathname: '/chat', params: { userLogged } })}><Text style={styles.buttonText}>Enviar</Text></TouchableOpacity>
         </View>
     )
 }
@@ -40,4 +40,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default changeName
+export default changeNameChat

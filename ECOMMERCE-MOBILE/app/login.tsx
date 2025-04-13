@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import {
+    StyleSheet, Text, TextInput, TouchableOpacity, View,
+    KeyboardAvoidingView, Platform, ScrollView, Alert
+} from 'react-native'
 import { AntDesign } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import httpService from './services/htthService'
 
 const Login = () => {
+    const SERVER_URL = 'http://192.168.0.195:3000'
     const router = useRouter()
 
-    const [email, setEmail] = useState({value: '', dirty: false})
-    const [password, setPassword] = useState({value: '', dirty: false})
+    const [email, setEmail] = useState({ value: '', dirty: false })
+    const [password, setPassword] = useState({ value: '', dirty: false })
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     const handleErrorEmail = () => {
@@ -31,42 +36,49 @@ const Login = () => {
         }
     }
 
-    const handleErrorForm = () => {
+    const handleErrorForm = async () => {
         let hasError = false
-        if (!password.value) {
-            setPassword({ value: password.value, dirty: true });
-            hasError = true;
-        } else if (password.value.length < 6) {
-            setPassword({ value: password.value, dirty: true });
-            hasError = true;
-        }
 
         if (!email.value) {
-            setEmail({value: email.value, dirty: true})
+            setEmail({ value: email.value, dirty: true })
+            hasError = true
+        } else if (!emailRegex.test(email.value)) {
+            setEmail({ value: email.value, dirty: true })
             hasError = true
         }
 
-        if (!emailRegex.test(email.value)) {
-            setEmail({value: email.value, dirty: true})
+        if (!password.value || password.value.length < 6) {
+            setPassword({ value: password.value, dirty: true })
             hasError = true
         }
 
         if (!hasError) {
-            router.replace('/(tabs)/home')
+            try {
+                const response = await httpService.post(`${SERVER_URL}/api/login`, {
+                    email: email.value,
+                    password: password.value,
+                })
+
+                if (response.status === 200) {
+                    Alert.alert('Sucesso', 'Login realizado com sucesso!')
+                    router.replace('/(tabs)/home')
+                }
+            } catch (error: any) {
+                if (error.response?.status === 401) {
+                    Alert.alert('Erro', 'Senha incorreta!')
+                } else if (error.response?.status === 404) {
+                    Alert.alert('Erro', 'Usuário não encontrado!')
+                } else {
+                    Alert.alert('Erro', 'Erro ao fazer login')
+                    console.error('Erro no login:', error)
+                }
+            }
         }
     }
 
     return (
-        <LinearGradient
-            colors={['#4c669f', '#3b5998', '#192f5d']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.container}
-        >
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
+        <LinearGradient colors={['#4c669f', '#3b5998', '#192f5d']} style={styles.container}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scrollView}>
                     <View style={styles.content}>
                         <AntDesign style={styles.logo} name="bank" />
@@ -80,7 +92,7 @@ const Login = () => {
                             placeholder="E-mail"
                             placeholderTextColor="#ccc"
                             value={email.value}
-                            onChangeText={(text) => setEmail({value: text, dirty: true})}
+                            onChangeText={(text) => setEmail({ value: text, dirty: true })}
                         />
                         {handleErrorEmail()}
 
@@ -90,21 +102,15 @@ const Login = () => {
                             placeholderTextColor="#ccc"
                             secureTextEntry
                             value={password.value}
-                            onChangeText={(text) => setPassword({value: text, dirty: true})}
+                            onChangeText={(text) => setPassword({ value: text, dirty: true })}
                         />
                         {handleErrorPassword()}
 
-                        <TouchableOpacity
-                            style={styles.loginButton}
-                            onPress={() => handleErrorForm()}
-                        >
+                        <TouchableOpacity style={styles.loginButton} onPress={handleErrorForm}>
                             <Text style={styles.buttonText}>Entrar</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.backButton}
-                            onPress={() => router.replace('/welcome')}
-                        >
+                        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/welcome')}>
                             <Text style={styles.buttonText}>Voltar</Text>
                         </TouchableOpacity>
 
@@ -153,7 +159,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     input: {
-        width: '100%', // Largura ajustada para manter uniformidade
+        width: '100%',
         paddingVertical: 12,
         paddingHorizontal: 10,
         borderRadius: 5,
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 15,
         alignItems: 'center',
-        backgroundColor: '#3b5998', // Cor de fundo para o botão de login
+        backgroundColor: '#3b5998',
     },
     backButton: {
         width: '100%',
@@ -176,7 +182,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 15,
         alignItems: 'center',
-        backgroundColor: '#8b9dc3', // Cor diferente para o botão de voltar
+        backgroundColor: '#8b9dc3',
     },
     buttonText: {
         color: 'white',
@@ -191,7 +197,7 @@ const styles = StyleSheet.create({
     error: {
         width: '100%',
         marginBottom: 20,
-        color: '#FF6347', // Cor para os erros
+        color: '#FF6347',
         fontWeight: 'bold',
         height: 20,
         fontSize: 14,

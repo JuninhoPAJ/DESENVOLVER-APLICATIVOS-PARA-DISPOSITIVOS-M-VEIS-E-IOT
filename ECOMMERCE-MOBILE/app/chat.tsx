@@ -1,5 +1,5 @@
-import React, { Fragment, useEffect, useState } from 'react'
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
@@ -15,21 +15,27 @@ class Message {
     }
 }
 
-const ws = new WebSocket('ws://192.168.0.195:3000')
+let ws: WebSocket
 const chat = () => {
+    const scrowRef = useRef<FlatList>(null)
     const params = useLocalSearchParams()
     const [userLogged, setUserLogged] = useState(params.userLogged)
     const [chatData, setChat] = useState<{ messages: Message[] }>({ messages: [] })
     const [message, setMessage] = useState('')
 
     useEffect(() => {
+        ws = new WebSocket('ws://192.168.0.195:3000')
         ws.onopen = () => {
             console.log('Conectado ao servidor WebSocket')
         }
-        ws.onmessage = ({data}) => {
-            chatData.messages.push(JSON.parse(data))
+        ws.onmessage = ({ data }) => {
+            const jsonMessage = JSON.parse(data)
+            chatData.messages.push(jsonMessage)
             setChat({ messages: chatData.messages })
-            setMessage('')
+            if (userLogged === jsonMessage.sentBy) {
+                setMessage('')
+            }
+            scrowRef.current?.scrollToEnd({ animated: true })
         }
     }, [])
 
@@ -41,6 +47,7 @@ const chat = () => {
     return (
         <Fragment>
             <FlatList
+                ref={scrowRef}
                 style={styles.scrollViewContainer}
                 data={chatData.messages}
                 renderItem={({ item }) => <Balloon message={item} currentUser={userLogged}></Balloon>}
@@ -49,7 +56,7 @@ const chat = () => {
                 showsVerticalScrollIndicator={false}
             />
 
-            <View style={styles.messageTextInputContainer}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} style={styles.messageTextInputContainer}>
                 <TextInput
                     style={styles.messageTextInput}
                     placeholder='Digite sua mensagem'
@@ -57,10 +64,10 @@ const chat = () => {
                     value={message}
                     onChangeText={(message) => setMessage(message)}
                 />
-                <TouchableOpacity onPress={() => sendMessage()} style={styles.sendButton} disabled={!message}>
+                <TouchableOpacity onPress={() => sendMessage()} style={styles.sendButton} disabled={!message.trim()}>
                     <Text style={{ color: Colors.white }}><Ionicons name='send' size={28} color='white' /></Text>
                 </TouchableOpacity>
-            </View>
+            </KeyboardAvoidingView>
         </Fragment>
     )
 }

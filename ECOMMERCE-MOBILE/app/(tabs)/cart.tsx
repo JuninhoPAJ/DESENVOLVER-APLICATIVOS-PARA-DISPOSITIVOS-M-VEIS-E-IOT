@@ -29,17 +29,26 @@ const Cart: React.FC = () => {
     try {
       const cart = await AsyncStorage.getItem('cart');
       let cartItems: Product[] = cart ? JSON.parse(cart) : [];
-
-      // Filtra o produto a ser removido
-      const updatedCart = cartItems.filter((item) => item.id !== productId);
-
-      // Atualiza o AsyncStorage e o estado local
-      await AsyncStorage.setItem('cart', JSON.stringify(updatedCart));
-      setCartItems(updatedCart); // Atualiza o estado
+  
+      const productIndex = cartItems.findIndex((item) => item.id === productId);
+  
+      if (productIndex !== -1) {
+        if (cartItems[productIndex].quantity > 1) {
+          // Só diminui a quantidade
+          cartItems[productIndex].quantity -= 1;
+        } else {
+          // Remove o produto se a quantidade for 1
+          cartItems.splice(productIndex, 1);
+        }
+  
+        await AsyncStorage.setItem('cart', JSON.stringify(cartItems));
+        setCartItems(cartItems);
+      }
     } catch (error) {
-      console.error("Erro ao excluir produto do carrinho:", error);
+      console.error("Erro ao atualizar o carrinho:", error);
     }
   };
+  
 
   const increaseQuantity = async (productId: number) => {
     try {
@@ -87,7 +96,7 @@ const Cart: React.FC = () => {
             <Image source={{ uri: item.image }} style={styles.itemImage} />
             <View style={styles.itemDetails}>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemPrice}>{item.price}</Text>
+              <Text style={styles.itemPrice}>{`R$ ${item.price}`}</Text>
               <Text style={styles.itemQuantity}>Quantidade: {item.quantity}</Text>
 
               <View style={styles.itemActions}>

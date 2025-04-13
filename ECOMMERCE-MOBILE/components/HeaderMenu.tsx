@@ -18,7 +18,8 @@ const HeaderMenu = () => {
         >
             <Menu.Item title={<Text>Perfil</Text>} />
             <Menu.Item title={<Text>Configuration</Text>} />
-            <Menu.Item onPress={() => router.replace('/changeName')} title={<Text>Conversation with IA</Text>} />
+            <Menu.Item onPress={() => router.replace('/changeNameChat')} title={<Text>Chat</Text>} />
+            <Menu.Item onPress={() => router.replace('/changeNameIA')} title={<Text>Conversation with IA</Text>} />
             <Divider />
             <Menu.Item onPress={() => { router.replace('/login') }} title="Sair" />
 
