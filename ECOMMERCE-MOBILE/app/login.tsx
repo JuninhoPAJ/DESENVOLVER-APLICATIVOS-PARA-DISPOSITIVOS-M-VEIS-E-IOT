@@ -7,6 +7,7 @@ import {
 import { AntDesign } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import httpService from './services/htthService'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Login = () => {
     const SERVER_URL = 'http://192.168.0.195:3000'
@@ -60,6 +61,8 @@ const Login = () => {
                 })
 
                 if (response.status === 200) {
+                    const userData = response.data.user;
+                    await AsyncStorage.setItem('user', JSON.stringify(userData))
                     Alert.alert('Sucesso', 'Login realizado com sucesso!')
                     router.replace('/(tabs)/home')
                 }

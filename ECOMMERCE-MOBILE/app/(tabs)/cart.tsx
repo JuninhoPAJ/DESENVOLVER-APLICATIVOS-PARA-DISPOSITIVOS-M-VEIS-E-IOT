@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 type Product = {
-  id: number;
+  id: number
+  _id: string;
   name: string;
   price: string;
   image: string;
@@ -14,6 +15,52 @@ type Product = {
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const navigation = useNavigation();
+
+  const finalizePurchase = async () => {
+    try {
+      const cart = await AsyncStorage.getItem('cart');
+      const userData = await AsyncStorage.getItem('user');
+  
+      if (!cart || !userData) {
+        return alert("Erro: usuário ou carrinho não encontrados");
+      }
+  
+      const cartItems = JSON.parse(cart);
+      const user = JSON.parse(userData);
+  
+      const formattedItems = cartItems.map((item: Product) => ({
+        product: item._id ?? item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: parseFloat(item.price),
+      }));
+  
+      const response = await fetch('http://192.168.0.195:3000/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user: user.id,
+          userName: user.name,
+          items: formattedItems,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert('Compra finalizada com sucesso!');
+        await AsyncStorage.removeItem('cart');
+        setCartItems([]);
+      } else {
+        alert('Erro ao finalizar compra: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar compra:', error);
+      alert('Erro inesperado');
+    }
+  };
 
   const loadCart = async () => {
     try {
@@ -29,9 +76,9 @@ const Cart: React.FC = () => {
     try {
       const cart = await AsyncStorage.getItem('cart');
       let cartItems: Product[] = cart ? JSON.parse(cart) : [];
-  
+
       const productIndex = cartItems.findIndex((item) => item.id === productId);
-  
+
       if (productIndex !== -1) {
         if (cartItems[productIndex].quantity > 1) {
           // Só diminui a quantidade
@@ -40,7 +87,7 @@ const Cart: React.FC = () => {
           // Remove o produto se a quantidade for 1
           cartItems.splice(productIndex, 1);
         }
-  
+
         await AsyncStorage.setItem('cart', JSON.stringify(cartItems));
         setCartItems(cartItems);
       }
@@ -48,7 +95,7 @@ const Cart: React.FC = () => {
       console.error("Erro ao atualizar o carrinho:", error);
     }
   };
-  
+
 
   const increaseQuantity = async (productId: number) => {
     try {
@@ -115,13 +162,35 @@ const Cart: React.FC = () => {
               </View>
             </View>
           </View>
+
         ))
       )}
+      {
+        cartItems.length > 0 && (
+          <TouchableOpacity style={styles.checkoutButton} onPress={finalizePurchase}>
+            <Text style={styles.checkoutText}>Finalizar Compra</Text>
+          </TouchableOpacity>
+        )
+      }
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+
+  checkoutButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  checkoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
   container: {
     padding: 20,
     backgroundColor: '#f5f5f5',

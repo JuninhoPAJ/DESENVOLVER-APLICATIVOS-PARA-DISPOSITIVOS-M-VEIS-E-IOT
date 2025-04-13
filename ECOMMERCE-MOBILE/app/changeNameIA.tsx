@@ -8,7 +8,7 @@ const changeNameIA = () => {
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <TextInput style={styles.textInput} placeholderTextColor='black' placeholder='Digite seu nome' onChangeText={(text) => setUserLogged(text)} value={userLogged} />
-            <TouchableOpacity style={styles.button} onPress={() => router.replace({ pathname: '/chat', params: { userLogged } })}><Text style={styles.buttonText}>Enviar</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => router.replace({ pathname: '/chatIa', params: { userLogged } })}><Text style={styles.buttonText}>Enviar</Text></TouchableOpacity>
         </View>
     )
 }
