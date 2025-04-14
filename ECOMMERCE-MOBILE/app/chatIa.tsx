@@ -64,7 +64,7 @@ const ChatIA = () => {
         data={chatData.messages}
         renderItem={({ item }) => <Balloon message={item} currentUser={userLogged} />}
         keyExtractor={(item, index) => index.toString()}
-        ListEmptyComponent={() => <Text style={{ alignSelf: 'center', color: '#848484' }}>Converse com a IA sobre seu currículo</Text>}
+        ListEmptyComponent={() => <Text style={{ alignSelf: 'center', color: '#848484' }}>Converse com a IA sobre compras na loja</Text>}
         showsVerticalScrollIndicator={false}
       />
 
@@ -73,7 +73,8 @@ const ChatIA = () => {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} style={styles.messageTextInputContainer}>
         <TextInput
           style={styles.messageTextInput}
-          placeholder='Pergunte sobre seu currículo...'
+          placeholder='Pergunte sobre as compras feitas na loja...'
+
           placeholderTextColor={Colors.light}
           value={message}
           onChangeText={(message) => setMessage(message)}
