@@ -1,9 +1,9 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { useLocalSearchParams } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 class Message {
     text: string
@@ -16,32 +16,60 @@ class Message {
 }
 
 let ws: WebSocket
-const chat = () => {
+
+const Chat = () => {
     const scrowRef = useRef<FlatList>(null)
     const params = useLocalSearchParams()
-    const [userLogged, setUserLogged] = useState(params.userLogged)
+
+    // Estado para armazenar os dados do usuário
+    const [userLogged, setUserLogged] = useState<string | null>(null)
     const [chatData, setChat] = useState<{ messages: Message[] }>({ messages: [] })
     const [message, setMessage] = useState('')
 
+    // Função para buscar os dados do usuário no AsyncStorage
+    const fetchUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem('user');
+            if (userData) {
+                const parsedUserData = JSON.parse(userData);
+                setUserLogged(parsedUserData.name); // Atualiza o estado com o nome do usuário
+            } else {
+                console.log("Usuário não encontrado no AsyncStorage.");
+            }
+        } catch (error) {
+            console.error("Erro ao obter dados do AsyncStorage:", error);
+        }
+    }
+
     useEffect(() => {
+        // Carregar dados do usuário do AsyncStorage assim que o componente for montado
+        fetchUserData();
+
+        // Configuração do WebSocket
         ws = new WebSocket('ws://192.168.0.195:3000')
         ws.onopen = () => {
             console.log('Conectado ao servidor WebSocket')
         }
         ws.onmessage = ({ data }) => {
             const jsonMessage = JSON.parse(data)
-            chatData.messages.push(jsonMessage)
-            setChat({ messages: chatData.messages })
+            setChat((prev) => ({ messages: [...prev.messages, jsonMessage] }))
             if (userLogged === jsonMessage.sentBy) {
-                setMessage('')
+                setMessage('') // Limpa a caixa de texto se a mensagem foi enviada
             }
             scrowRef.current?.scrollToEnd({ animated: true })
         }
-    }, [])
+
+        return () => {
+            // Fechar a conexão do WebSocket ao desmontar o componente
+            ws.close()
+        }
+    }, [userLogged]) // Dependendo do `userLogged`, vai configurar o WebSocket e buscar os dados
 
     const sendMessage = () => {
-        const jsonString: string = JSON.stringify({ text: message, sentBy: userLogged })
-        ws.send(jsonString)
+        if (userLogged && message.trim()) {
+            const jsonString: string = JSON.stringify({ text: message, sentBy: userLogged })
+            ws.send(jsonString)
+        }
     }
 
     return (
@@ -50,7 +78,7 @@ const chat = () => {
                 ref={scrowRef}
                 style={styles.scrollViewContainer}
                 data={chatData.messages}
-                renderItem={({ item }) => <Balloon message={item} currentUser={userLogged}></Balloon>}
+                renderItem={({ item }) => <Balloon message={item} currentUser={userLogged} />}
                 keyExtractor={(item, index) => index.toString()}
                 ListEmptyComponent={() => <Text style={{ alignSelf: 'center', color: '#848484' }}>Sem mensagens no momento</Text>}
                 showsVerticalScrollIndicator={false}
@@ -73,11 +101,10 @@ const chat = () => {
 }
 
 const Balloon = ({ message, currentUser }: any) => {
-    const sent = currentUser === message.sentBy;
-    const balloonColor = sent ? styles.balloonSent : styles.balloonReceived;
-    const balloonTextColor = sent ? styles.balloonTextSent : styles.balloonTextReceived;
-    const bubbleWarpper = sent ? styles.bubbleWarpperSent : styles.bubbleWarpperReceive;
-
+    const sent = currentUser === message.sentBy
+    const balloonColor = sent ? styles.balloonSent : styles.balloonReceived
+    const balloonTextColor = sent ? styles.balloonTextSent : styles.balloonTextReceived
+    const bubbleWarpper = sent ? styles.bubbleWarpperSent : styles.bubbleWarpperReceive
 
     return (
         <View style={{ marginBottom: '2%' }}>
@@ -92,7 +119,6 @@ const Balloon = ({ message, currentUser }: any) => {
 }
 
 const styles = StyleSheet.create({
-
     sendButton: {
         backgroundColor: '#0Edfbd',
         color: Colors.white,
@@ -123,17 +149,15 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginHorizontal: 16,
     },
-
     scrollViewContainer: {
         padding: 10,
         top: 10,
         marginBottom: 30,
     },
-
     messageTextInputContainer: {
         justifyContent: 'flex-end',
         padding: 5,
-        borderColor: 'trasparent',
+        borderColor: 'transparent',
         borderTopColor: Colors.light,
         alignItems: 'center',
         flexDirection: 'row',
@@ -182,4 +206,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default chat
+export default Chat

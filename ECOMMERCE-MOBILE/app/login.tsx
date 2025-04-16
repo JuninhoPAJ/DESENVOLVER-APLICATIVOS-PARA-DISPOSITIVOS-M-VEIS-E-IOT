@@ -68,11 +68,11 @@ const Login = () => {
                 }
             } catch (error: any) {
                 if (error.response?.status === 401) {
-                    Alert.alert('Erro', 'Senha incorreta!')
+                    Alert.alert('Erro', 'Credenciais inválidas!')
                 } else if (error.response?.status === 404) {
-                    Alert.alert('Erro', 'Usuário não encontrado!')
+                    Alert.alert('Erro', 'Credenciais inválidas!')
                 } else {
-                    Alert.alert('Erro', 'Erro ao fazer login')
+                    Alert.alert('Erro', 'Credenciais inválidas!')
                     console.error('Erro no login:', error)
                 }
             }

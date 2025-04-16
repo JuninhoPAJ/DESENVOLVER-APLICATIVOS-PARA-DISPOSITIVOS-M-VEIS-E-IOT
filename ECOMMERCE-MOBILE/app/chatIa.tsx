@@ -1,8 +1,9 @@
-import React, { Fragment, useRef, useState } from 'react'
+import React, { Fragment, useRef, useState, useEffect } from 'react'
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { useLocalSearchParams } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 class Message {
   text: string
@@ -18,12 +19,37 @@ const ChatIA = () => {
   const scrowRef = useRef<FlatList>(null)
   const params = useLocalSearchParams()
   const user = Array.isArray(params.userLogged) ? params.userLogged[0] : params.userLogged
-  const [userLogged, setUserLogged] = useState(user)
+
+  const [userLogged, setUserLogged] = useState<string | null>(null) // Estado para armazenar o nome do usuário
   const [chatData, setChat] = useState<{ messages: Message[] }>({ messages: [] })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Usando useEffect para buscar e definir o nome do usuário do AsyncStorage
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (userData) {
+          const parsedUserData = JSON.parse(userData);
+          setUserLogged(parsedUserData.name); // Atualizando o estado com o nome do usuário
+        } else {
+          console.log("Usuário não encontrado no AsyncStorage.");
+        }
+      } catch (error) {
+        console.error("Erro ao obter dados do AsyncStorage:", error);
+      }
+    }
+
+    fetchUserData();
+  }, []);
+
   const sendMessage = async () => {
+    if (!userLogged) {
+      console.log("Nome do usuário não encontrado.");
+      return; // Se o nome do usuário não estiver carregado, não envia a mensagem
+    }
+
     const userMessage = new Message(message, userLogged)
     setChat((prev) => ({
       messages: [...prev.messages, userMessage]
@@ -74,7 +100,6 @@ const ChatIA = () => {
         <TextInput
           style={styles.messageTextInput}
           placeholder='Pergunte sobre as compras feitas na loja...'
-
           placeholderTextColor={Colors.light}
           value={message}
           onChangeText={(message) => setMessage(message)}
@@ -106,7 +131,6 @@ const Balloon = ({ message, currentUser }: any) => {
 }
 
 const styles = StyleSheet.create({
-
   sendButton: {
     backgroundColor: '#0Edfbd',
     color: Colors.white,
@@ -137,17 +161,15 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginHorizontal: 16,
   },
-
   scrollViewContainer: {
     padding: 10,
     top: 10,
     marginBottom: 30,
   },
-
   messageTextInputContainer: {
     justifyContent: 'flex-end',
     padding: 5,
-    borderColor: 'trasparent',
+    borderColor: 'transparent',
     borderTopColor: Colors.light,
     alignItems: 'center',
     flexDirection: 'row',
